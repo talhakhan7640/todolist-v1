@@ -16,7 +16,7 @@
 		<% newListItem.forEach(item => {  %>
 			<div class="item">
 				<input type="checkbox">
-				<p><%= item %></p>
+				<p><%= item.name %></p>
 			</div>
 		<% }) %>
 
@@ -24,8 +24,6 @@
 			<input type="text" name="item" placeholder="New Item" autocomplete="off">
 			<button type="submit" name="list" value="<%= listTitle %>"> + </button>
 		</form>
-
 	</div>
-	
 </body>
 </html>

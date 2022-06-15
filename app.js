@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const date = require(__dirname + '/date.js')
+const mongoose  = require("mongoose")
+// const date = require(__dirname + '/date.js')
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -8,14 +9,48 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 app.use(express.static('public'))
 
-var items = [];
-var workItems = [];
+mongoose.connect("mongodb://localhost:27017/todolistDB")
+
+// Create mongoose schema 
+const itemSchema  = new mongoose.Schema({
+	name: String
+})
+const Item = mongoose.model("Item", itemSchema)
+
+// var items = [];
+// var workItems = [];
+
+// ------------ Putting default items in database --------------
+const item1 = new Item({
+	name: "Welcome to ToDoList."
+})
+const item2 = new Item({
+	name: "Hit the + button to add new item."
+})
+const item3 = new Item({
+	name: "<--- Hit this to delete an item."
+})
+
+const defaultItems = [item1, item2, item3]
 
 app.get("/", (req, res) => {
+	// let day = date()
 
-	let day = date()
-
-	res.render('list', {listTitle: day, newListItem: items})
+	Item.find({}, function(err, foundItems) {
+		if (foundItems.length == 0) {
+			Item.insertMany(defaultItems, function(err){
+				if(err) {
+					console.log(err);
+				} else {
+					console.log("successfully inserted deafult items to DB.")
+				}
+			});
+			res.redirect("/")
+		} else {
+			res.render('list', {listTitle: "Today", newListItem: foundItems } )
+		}
+	})
+	// res.render('list', {listTitle: "Today", newListItem: defaultItems } )
 })
 
 app.post("/", (req, res) => {
@@ -32,11 +67,6 @@ app.post("/", (req, res) => {
 		items.push(item)
 		res.redirect("/")
 	}
-
-	
-	
-
-	
 })
 
 
