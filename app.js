@@ -1,12 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose  = require("mongoose")
-// const date = require(__dirname + '/date.js')
 
 const app = express();
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }))
-
 app.use(express.static('public'))
 
 mongoose.connect("mongodb://localhost:27017/todolistDB")
@@ -16,9 +14,6 @@ const itemSchema  = new mongoose.Schema({
 	name: String
 })
 const Item = mongoose.model("Item", itemSchema)
-
-// var items = [];
-// var workItems = [];
 
 // ------------ Putting default items in database --------------
 const item1 = new Item({
@@ -34,8 +29,6 @@ const item3 = new Item({
 const defaultItems = [item1, item2, item3]
 
 app.get("/", (req, res) => {
-	// let day = date()
-
 	Item.find({}, function(err, foundItems) {
 		if (foundItems.length == 0) {
 			Item.insertMany(defaultItems, function(err){
@@ -52,23 +45,33 @@ app.get("/", (req, res) => {
 	})
 	// res.render('list', {listTitle: "Today", newListItem: defaultItems } )
 })
-
 app.post("/", (req, res) => {
-
-	item = req.body.item
-
-	// console.log(req.body)
-
-	if(req.body.list === "Work List") {
-		workItems.push(item)
-		res.redirect("/work")
-	} else {
-		// Putting items into array 
-		items.push(item)
+	const itemName = req.body.item
+	if(itemName.length == 0) {
 		res.redirect("/")
+	} else {
+		const newItem = new Item({
+			name: itemName
+		})
+
+		newItem.save().then(() => console.log('Item added'))
 	}
+	res.redirect("/")
 })
 
+app.post("/delete", (req, res) => {
+	const checkedItemId = req.body.checkbox
+
+	Item.findByIdAndDelete(checkedItemId, function (err, docs) {
+		if (err){
+			console.log(err)
+		}
+		else{
+			console.log("Deleted : ", docs);
+			res.redirect("/")
+		}
+	});
+})
 
 app.get("/work", (req,res) => {
 	res.render("list", {listTitle: "Work List", newListItem: workItems})
